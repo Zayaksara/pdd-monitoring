@@ -14,6 +14,8 @@
   --border: #CBD5E1;
   --destructive: #DC2626;
   --on-destructive: #FFFFFF;
+  --destructive-bg: #FEF2F2;
+  --destructive-border: #FECACA;
   --status-planning: #64748B;
   --status-in-progress: #0D9488;
   --status-review: #F59E0B;
@@ -34,6 +36,8 @@
   --color-border: var(--border);
   --color-destructive: var(--destructive);
   --color-on-destructive: var(--on-destructive);
+  --color-destructive-bg: var(--destructive-bg);
+  --color-destructive-border: var(--destructive-border);
   --font-sans: var(--font-sans);
   --font-heading: var(--font-heading);
   --font-mono: var(--font-mono);

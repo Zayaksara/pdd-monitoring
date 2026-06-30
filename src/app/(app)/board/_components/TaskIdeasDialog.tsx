@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import { ExternalLink, X } from "lucide-react";
+import { safeHref } from "@/lib/url";
 import type { TaskWithRelations } from "@/server/tasks";
 import type { listIdeas } from "@/server/ideas";
 
@@ -20,15 +21,6 @@ interface TaskIdeasDialogProps {
   onClose: () => void;
   onAttached: (taskId: string, idea: IdeaOption) => void;
   onDetached: (taskId: string, ideaId: string) => void;
-}
-
-function safeHref(u: string): string | undefined {
-  try {
-    const p = new URL(u);
-    return p.protocol === "http:" || p.protocol === "https:" ? u : undefined;
-  } catch {
-    return undefined;
-  }
 }
 
 export default function TaskIdeasDialog({
@@ -189,7 +181,7 @@ export default function TaskIdeasDialog({
           <p className="text-sm font-medium text-[--fg]">{task.title}</p>
 
           {error && (
-            <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            <div className="rounded-lg border border-[--destructive-border] bg-[--destructive-bg] px-3 py-2 text-sm text-[--destructive]">
               {error}
             </div>
           )}

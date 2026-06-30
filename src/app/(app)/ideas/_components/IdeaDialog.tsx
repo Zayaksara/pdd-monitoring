@@ -183,7 +183,7 @@ export default function IdeaDialog({
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 px-5 py-5">
           {error && (
-            <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            <div className="rounded-lg border border-[--destructive-border] bg-[--destructive-bg] px-3 py-2 text-sm text-[--destructive]">
               {error}
             </div>
           )}

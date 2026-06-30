@@ -203,11 +203,11 @@ export default function Board({ initialTasks, currentUser, users, ideas }: Board
 
       {/* Error banner */}
       {error && (
-        <div className="flex items-center justify-between gap-3 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg">
+        <div className="flex items-center justify-between gap-3 bg-[--destructive-bg] border border-[--destructive-border] text-[--destructive] text-sm px-4 py-3 rounded-lg">
           <span>{error}</span>
           <button
             onClick={() => setError(null)}
-            className="shrink-0 text-red-500 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-[--primary] rounded"
+            className="shrink-0 text-[--destructive] hover:opacity-70 focus:outline-none focus:ring-2 focus:ring-[--primary] rounded"
             aria-label="Tutup pesan kesalahan"
           >
             <X size={16} />

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { canCreateTask, canEditTask, canChangeStatus, canPromoteIdea, canManageUsers } from "@/lib/authz";
+import { canCreateTask, canEditTask, canChangeStatus, canPromoteIdea, canManageUsers, type TaskStatus } from "@/lib/authz";
 
 describe("task creation/edit", () => {
   it("only admin creates/edits tasks", () => {
@@ -10,7 +10,7 @@ describe("task creation/edit", () => {
 });
 
 describe("status changes", () => {
-  const u = (from: any, to: any, isAssignee = true) =>
+  const u = (from: TaskStatus, to: TaskStatus, isAssignee = true) =>
     canChangeStatus({ role: "user", isAssignee, from, to });
 
   it("assignee user may move between non-DONE states", () => {
@@ -26,7 +26,7 @@ describe("status changes", () => {
     expect(u("PLANNING", "IN_PROGRESS", false)).toBe(false);
   });
   it("admin may move anything including DONE", () => {
-    const a = (from: any, to: any) => canChangeStatus({ role: "admin", isAssignee: false, from, to });
+    const a = (from: TaskStatus, to: TaskStatus) => canChangeStatus({ role: "admin", isAssignee: false, from, to });
     expect(a("REVIEW", "DONE")).toBe(true);
     expect(a("DONE", "PLANNING")).toBe(true);
   });

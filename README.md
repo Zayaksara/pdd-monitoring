@@ -1,36 +1,97 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Monitoring PDD
 
-## Getting Started
+Aplikasi monitoring tugas (Kanban) dan Bank Ide untuk tim PDD KKN. Dibangun dengan
+Next.js 16 (App Router), React 19, Tailwind v4, dan Prisma 7 dengan Neon (Postgres serverless).
 
-First, run the development server:
+## Fitur
+
+- **Papan Tugas (Kanban):** 4 kolom (Planning, In Progress, Review, Done), drag & drop,
+  tenggat + indikator overdue. Admin membuat/menugaskan tugas dan menyetujui status Done.
+- **Bank Ide:** catatan ide dengan tautan Google Drive berkategori (link-only, tanpa unggahan).
+- **Keterkaitan ide ↔ tugas** dua arah, plus promosikan ide menjadi tugas.
+- **Manajemen akun** oleh admin; login username + password.
+
+## Prasyarat
+
+- Node.js (Vercel default ≥ 21 disarankan — lihat catatan WebSocket di bawah)
+- pnpm
+- Database Postgres dari [Neon](https://neon.tech)
+
+## Konfigurasi environment
+
+Salin `.env.example` menjadi `.env` lalu isi kedua variabel berikut:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Connection string Neon — WAJIB diakhiri ?sslmode=require
+DATABASE_URL="postgresql://USER:PASSWORD@HOST/DB?sslmode=require"
+
+# Rahasia sesi untuk menandatangani cookie — minimal 32 karakter
+SESSION_SECRET="ganti-dengan-string-acak-minimal-32-karakter"
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`SESSION_SECRET` harus ≥ 32 karakter. Hasilkan misalnya dengan:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Menjalankan secara lokal
 
-## Learn More
+```bash
+pnpm install      # pasang dependency (menjalankan prisma generate via postinstall)
+pnpm db:push      # buat skema di database Neon
+pnpm db:seed      # isi akun awal (admin + nisa + fauziyah)
+pnpm dev          # jalankan di http://localhost:3000
+```
 
-To learn more about Next.js, take a look at the following resources:
+### Akun hasil seed
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+`pnpm db:seed` membuat tiga akun (`prisma/seed.ts`):
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Username   | Peran   | Password (default)                          |
+|------------|---------|---------------------------------------------|
+| `admin`    | admin   | env `SEED_ADMIN_PASS` atau `admin123`       |
+| `nisa`     | anggota | env `SEED_USER_PASS` atau `user123`         |
+| `fauziyah` | anggota | env `SEED_USER_PASS` atau `user123`         |
 
-## Deploy on Vercel
+Untuk produksi, set `SEED_ADMIN_PASS` dan `SEED_USER_PASS` (dan opsional `SEED_ADMIN_USER`)
+sebelum menjalankan seed, supaya tidak memakai password default.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Perintah lain
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+pnpm build        # build produksi
+pnpm test         # unit test (Vitest: authz + session)
+pnpm lint         # ESLint
+```
+
+## Deploy ke Vercel
+
+> Catatan: deploy belum dilakukan otomatis — environment ini tidak punya kredensial Neon.
+> Langkah berikut dijalankan oleh pemilik proyek.
+
+1. Push repo ini ke GitHub, lalu **Import Project** di [Vercel](https://vercel.com/new).
+2. Di **Project Settings → Environment Variables**, set kedua variabel untuk semua
+   environment (Production/Preview/Development):
+   - `DATABASE_URL` — connection string Neon dengan `?sslmode=require`.
+   - `SESSION_SECRET` — string acak ≥ 32 karakter.
+3. Deploy. Build menjalankan `prisma generate` (via `postinstall`) lalu `next build`.
+4. **Inisialisasi database produksi** sekali — dorong skema dan isi akun terhadap DB Neon:
+   ```bash
+   # dijalankan lokal dengan DATABASE_URL menunjuk ke DB produksi
+   pnpm db:push
+   pnpm db:seed
+   ```
+5. Verifikasi login pada URL hasil deploy dari ponsel dan laptop.
+
+### Catatan teknis deploy
+
+- **Driver Neon serverless.** Koneksi memakai `@prisma/adapter-neon` (lihat `src/lib/db.ts`).
+- **WebSocket.** Adapter Neon memerlukan WebSocket. Runtime Node ≥ 21 (default Vercel saat ini)
+  menyediakannya secara native, jadi tidak perlu konfigurasi tambahan. Jika men-deploy pada
+  Node 18/20, tambahkan paket `ws` dan set `neonConfig.webSocketConstructor` sesuai komentar
+  di `src/lib/db.ts`.
+- **Prisma 7 & `prisma db push`.** Jika CLI Prisma tidak menemukan `DATABASE_URL` saat
+  menjalankan `prisma db push`, buat `prisma.config.ts` di root yang menyuplai URL tersebut
+  (atau pastikan `.env` termuat di lingkungan eksekusi). Halaman aplikasi memakai
+  `export const dynamic = "force-dynamic"` sehingga selalu dirender per-request.

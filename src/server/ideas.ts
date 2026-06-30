@@ -1,12 +1,8 @@
 import { prisma } from "@/lib/db";
+import { isSafeUrl } from "@/lib/url";
 import type { DriveCategory } from "@prisma/client";
 
 type LinkInput = { url: string; label?: string; category?: DriveCategory | null };
-
-function isSafeUrl(u: string): boolean {
-  try { const p = new URL(u); return p.protocol === "http:" || p.protocol === "https:"; }
-  catch { return false; }
-}
 
 const include = {
   links: true,

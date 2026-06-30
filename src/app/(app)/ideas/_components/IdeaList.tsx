@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ClipboardCheck, ExternalLink, Lightbulb, Pencil, Plus, Trash2, X } from "lucide-react";
 import type { DriveCategory } from "@prisma/client";
 import type { listIdeas } from "@/server/ideas";
+import { safeHref } from "@/lib/url";
 import { CATEGORIES } from "./LinkRow";
 import IdeaDialog from "./IdeaDialog";
 
@@ -29,15 +30,6 @@ const CATEGORY_STYLES: Record<DriveCategory, string> = {
 const CATEGORY_LABELS: Record<DriveCategory, string> = Object.fromEntries(
   CATEGORIES.map((c) => [c.value, c.label])
 ) as Record<DriveCategory, string>;
-
-function safeHref(u: string): string | undefined {
-  try {
-    const p = new URL(u);
-    return p.protocol === "http:" || p.protocol === "https:" ? u : undefined;
-  } catch {
-    return undefined;
-  }
-}
 
 export default function IdeaList({ initialIdeas, canPromote }: IdeaListProps) {
   const [ideas, setIdeas] = useState<IdeaWithRelations[]>(initialIdeas);
@@ -127,11 +119,11 @@ export default function IdeaList({ initialIdeas, canPromote }: IdeaListProps) {
       </div>
 
       {error && (
-        <div className="flex items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-[--destructive-border] bg-[--destructive-bg] px-4 py-3 text-sm text-[--destructive]">
           <span>{error}</span>
           <button
             onClick={() => setError(null)}
-            className="shrink-0 rounded text-red-500 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-[--primary]"
+            className="shrink-0 rounded text-[--destructive] hover:opacity-70 focus:outline-none focus:ring-2 focus:ring-[--primary]"
             aria-label="Tutup pesan kesalahan"
           >
             <X size={16} />

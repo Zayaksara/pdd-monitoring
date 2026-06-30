@@ -3,7 +3,7 @@ export type TaskStatus = "PLANNING" | "IN_PROGRESS" | "REVIEW" | "DONE";
 
 export const canCreateTask = (role: Role) => role === "admin";
 export const canEditTask = (role: Role) => role === "admin";
-export const canEditIdea = (_role: Role) => true;
+export const canEditIdea = (role: Role): boolean => role === "admin" || role === "user";
 export const canPromoteIdea = (role: Role) => role === "admin";
 export const canManageUsers = (role: Role) => role === "admin";
 
