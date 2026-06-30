@@ -16,6 +16,7 @@ interface TaskCardProps {
   index: number;
   isAdmin: boolean;
   onEdit: (task: TaskWithRelations) => void;
+  onOpenIdeas: (task: TaskWithRelations) => void;
 }
 
 function formatDeadline(date: Date): string {
@@ -30,6 +31,7 @@ export default function TaskCard({
   index,
   isAdmin,
   onEdit,
+  onOpenIdeas,
 }: TaskCardProps) {
   const overdue =
     task.deadline &&
@@ -95,12 +97,16 @@ export default function TaskCard({
               </span>
             )}
 
-            {ideaCount > 0 && (
-              <span className="flex items-center gap-1 text-xs font-mono px-2 py-0.5 rounded-full bg-[--muted] text-[--muted-fg]">
-                <Lightbulb size={12} />
-                {ideaCount}
-              </span>
-            )}
+            <button
+              type="button"
+              onClick={() => onOpenIdeas(task)}
+              onMouseDown={(e) => e.stopPropagation()}
+              aria-label={`Ide terkait tugas ${task.title}`}
+              className="flex items-center gap-1 text-xs font-mono px-2 py-0.5 rounded-full bg-[--muted] text-[--muted-fg] hover:text-[--fg] focus:outline-none focus:ring-2 focus:ring-[--primary]"
+            >
+              <Lightbulb size={12} />
+              {ideaCount}
+            </button>
           </div>
         </div>
       )}

@@ -33,3 +33,12 @@ export async function updateIdea(id: string, input: { title?: string; notes?: st
   }, include });
 }
 export async function deleteIdea(id: string) { await prisma.idea.delete({ where: { id } }); }
+export async function promoteIdeaToTask(ideaId: string, createdById: string) {
+  const idea = await prisma.idea.findUnique({ where: { id: ideaId } });
+  if (!idea) throw new Error("idea not found");
+  const task = await prisma.task.create({ data: {
+    title: idea.title, description: idea.notes, createdById,
+    ideas: { create: { ideaId } },
+  } });
+  return task;
+}

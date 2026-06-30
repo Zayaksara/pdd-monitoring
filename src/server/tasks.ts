@@ -34,3 +34,12 @@ export function updateTaskStatus(id: string, status: TaskStatus) {
 export async function deleteTask(id: string) {
   await prisma.task.delete({ where: { id } });
 }
+export function attachIdea(taskId: string, ideaId: string) {
+  return prisma.taskIdea.upsert({
+    where: { taskId_ideaId: { taskId, ideaId } },
+    create: { taskId, ideaId }, update: {},
+  });
+}
+export async function detachIdea(taskId: string, ideaId: string) {
+  await prisma.taskIdea.delete({ where: { taskId_ideaId: { taskId, ideaId } } });
+}

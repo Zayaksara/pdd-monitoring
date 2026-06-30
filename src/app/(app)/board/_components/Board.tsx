@@ -7,6 +7,7 @@ import type { TaskWithRelations } from "@/server/tasks";
 import type { UserListItem } from "@/server/users";
 import Column from "./Column";
 import TaskDialog from "./TaskDialog";
+import TaskIdeasDialog, { type IdeaOption } from "./TaskIdeasDialog";
 
 interface CurrentUser {
   id: string;
@@ -19,6 +20,7 @@ interface BoardProps {
   initialTasks: TaskWithRelations[];
   currentUser: CurrentUser;
   users: UserListItem[];
+  ideas: IdeaOption[];
 }
 
 interface SavedTask {
@@ -47,12 +49,46 @@ const COLUMNS = [
 
 type TaskStatus = (typeof COLUMNS)[number]["key"];
 
-export default function Board({ initialTasks, currentUser, users }: BoardProps) {
+export default function Board({ initialTasks, currentUser, users, ideas }: BoardProps) {
   const [tasks, setTasks] = useState<TaskWithRelations[]>(initialTasks);
   const [error, setError] = useState<string | null>(null);
   const [dialog, setDialog] = useState<DialogState>(null);
+  const [ideasTaskId, setIdeasTaskId] = useState<string | null>(null);
 
   const isAdmin = currentUser.role === "admin";
+
+  const ideasTask = ideasTaskId
+    ? tasks.find((t) => t.id === ideasTaskId) ?? null
+    : null;
+
+  function handleAttached(taskId: string, idea: IdeaOption) {
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.id === taskId
+          ? ({
+              ...t,
+              ideas: [
+                ...t.ideas,
+                { idea: { id: idea.id, title: idea.title, links: idea.links } },
+              ],
+            } as TaskWithRelations)
+          : t
+      )
+    );
+  }
+
+  function handleDetached(taskId: string, ideaId: string) {
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.id === taskId
+          ? ({
+              ...t,
+              ideas: t.ideas.filter((e) => e.idea.id !== ideaId),
+            } as TaskWithRelations)
+          : t
+      )
+    );
+  }
 
   function getTasksByStatus(status: TaskStatus) {
     return tasks.filter((t) => t.status === status);
@@ -190,6 +226,7 @@ export default function Board({ initialTasks, currentUser, users }: BoardProps) 
               tasks={getTasksByStatus(key)}
               isAdmin={isAdmin}
               onEdit={(task) => setDialog({ mode: "edit", task })}
+              onOpenIdeas={(task) => setIdeasTaskId(task.id)}
             />
           ))}
         </div>
@@ -202,6 +239,16 @@ export default function Board({ initialTasks, currentUser, users }: BoardProps) 
           users={users}
           onClose={() => setDialog(null)}
           onSaved={handleSaved}
+        />
+      )}
+
+      {ideasTask && (
+        <TaskIdeasDialog
+          task={ideasTask}
+          ideas={ideas}
+          onClose={() => setIdeasTaskId(null)}
+          onAttached={handleAttached}
+          onDetached={handleDetached}
         />
       )}
     </div>

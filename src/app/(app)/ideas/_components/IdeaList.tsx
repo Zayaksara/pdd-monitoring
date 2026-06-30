@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ExternalLink, Lightbulb, Pencil, Plus, Trash2, X } from "lucide-react";
+import { ClipboardCheck, ExternalLink, Lightbulb, Pencil, Plus, Trash2, X } from "lucide-react";
 import type { DriveCategory } from "@prisma/client";
 import type { listIdeas } from "@/server/ideas";
 import { CATEGORIES } from "./LinkRow";
@@ -11,6 +11,7 @@ export type IdeaWithRelations = Awaited<ReturnType<typeof listIdeas>>[number];
 
 interface IdeaListProps {
   initialIdeas: IdeaWithRelations[];
+  canPromote: boolean;
 }
 
 type DialogState =
@@ -38,10 +39,50 @@ function safeHref(u: string): string | undefined {
   }
 }
 
-export default function IdeaList({ initialIdeas }: IdeaListProps) {
+export default function IdeaList({ initialIdeas, canPromote }: IdeaListProps) {
   const [ideas, setIdeas] = useState<IdeaWithRelations[]>(initialIdeas);
   const [dialog, setDialog] = useState<DialogState>(null);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [promotingId, setPromotingId] = useState<string | null>(null);
+
+  async function handlePromote(idea: IdeaWithRelations) {
+    setError(null);
+    setNotice(null);
+    setPromotingId(idea.id);
+    try {
+      const res = await fetch(`/api/ideas/${idea.id}/promote`, {
+        method: "POST",
+      });
+      if (!res.ok) {
+        setError("Gagal menjadikan tugas.");
+        return;
+      }
+      const task = (await res.json()) as { id: string; title: string };
+      setIdeas((prev) =>
+        prev.map((i) =>
+          i.id === idea.id
+            ? {
+                ...i,
+                tasks: [
+                  ...i.tasks,
+                  {
+                    taskId: task.id,
+                    ideaId: i.id,
+                    task: { id: task.id, title: task.title },
+                  },
+                ],
+              }
+            : i
+        )
+      );
+      setNotice("Tugas dibuat.");
+    } catch {
+      setError("Gagal menjadikan tugas.");
+    } finally {
+      setPromotingId(null);
+    }
+  }
 
   function handleSaved(saved: IdeaWithRelations) {
     setIdeas((prev) => {
@@ -92,6 +133,19 @@ export default function IdeaList({ initialIdeas }: IdeaListProps) {
             onClick={() => setError(null)}
             className="shrink-0 rounded text-red-500 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-[--primary]"
             aria-label="Tutup pesan kesalahan"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
+      {notice && (
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-[--border] bg-[--muted] px-4 py-3 text-sm text-[--fg]">
+          <span>{notice}</span>
+          <button
+            onClick={() => setNotice(null)}
+            className="shrink-0 rounded text-[--muted-fg] hover:text-[--fg] focus:outline-none focus:ring-2 focus:ring-[--primary]"
+            aria-label="Tutup pesan"
           >
             <X size={16} />
           </button>
@@ -197,7 +251,19 @@ export default function IdeaList({ initialIdeas }: IdeaListProps) {
                 </div>
               )}
 
-              <p className="mt-auto text-xs text-[--muted-fg]">
+              {canPromote && (
+                <button
+                  type="button"
+                  onClick={() => handlePromote(idea)}
+                  disabled={promotingId === idea.id}
+                  className="mt-auto flex min-h-[40px] items-center justify-center gap-2 rounded-lg border border-[--border] bg-white px-4 text-sm font-semibold text-[--fg] hover:bg-[--muted] focus:outline-none focus:ring-2 focus:ring-[--primary] disabled:opacity-50"
+                >
+                  <ClipboardCheck size={15} />
+                  {promotingId === idea.id ? "Memproses…" : "Jadikan Tugas"}
+                </button>
+              )}
+
+              <p className={`text-xs text-[--muted-fg] ${canPromote ? "" : "mt-auto"}`}>
                 <span className="font-mono">{idea.createdBy.name}</span>
               </p>
             </article>

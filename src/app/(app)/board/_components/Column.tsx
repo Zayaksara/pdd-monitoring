@@ -17,6 +17,7 @@ interface ColumnProps {
   tasks: TaskWithRelations[];
   isAdmin: boolean;
   onEdit: (task: TaskWithRelations) => void;
+  onOpenIdeas: (task: TaskWithRelations) => void;
 }
 
 export default function Column({
@@ -25,6 +26,7 @@ export default function Column({
   tasks,
   isAdmin,
   onEdit,
+  onOpenIdeas,
 }: ColumnProps) {
   const dotColor = STATUS_COLOR[columnKey] ?? "var(--status-planning)";
 
@@ -66,6 +68,7 @@ export default function Column({
                 index={i}
                 isAdmin={isAdmin}
                 onEdit={onEdit}
+                onOpenIdeas={onOpenIdeas}
               />
             ))}
             {provided.placeholder}
