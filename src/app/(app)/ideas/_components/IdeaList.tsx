@@ -29,6 +29,15 @@ const CATEGORY_LABELS: Record<DriveCategory, string> = Object.fromEntries(
   CATEGORIES.map((c) => [c.value, c.label])
 ) as Record<DriveCategory, string>;
 
+function safeHref(u: string): string | undefined {
+  try {
+    const p = new URL(u);
+    return p.protocol === "http:" || p.protocol === "https:" ? u : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export default function IdeaList({ initialIdeas }: IdeaListProps) {
   const [ideas, setIdeas] = useState<IdeaWithRelations[]>(initialIdeas);
   const [dialog, setDialog] = useState<DialogState>(null);
@@ -141,24 +150,37 @@ export default function IdeaList({ initialIdeas }: IdeaListProps) {
 
               {idea.links.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
-                  {idea.links.map((link) => (
-                    <a
-                      key={link.id}
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[--primary] ${
-                        link.category
-                          ? CATEGORY_STYLES[link.category]
-                          : "bg-[--muted] text-[--muted-fg]"
-                      }`}
-                    >
-                      <ExternalLink size={12} />
-                      {link.category
-                        ? CATEGORY_LABELS[link.category]
-                        : link.label || "Tautan"}
-                    </a>
-                  ))}
+                  {idea.links.map((link) => {
+                    const href = safeHref(link.url);
+                    const chipClassName = `inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[--primary] ${
+                      link.category
+                        ? CATEGORY_STYLES[link.category]
+                        : "bg-[--muted] text-[--muted-fg]"
+                    }`;
+                    const chipContent = (
+                      <>
+                        <ExternalLink size={12} />
+                        {link.category
+                          ? CATEGORY_LABELS[link.category]
+                          : link.label || "Tautan"}
+                      </>
+                    );
+                    return href ? (
+                      <a
+                        key={link.id}
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={chipClassName}
+                      >
+                        {chipContent}
+                      </a>
+                    ) : (
+                      <span key={link.id} className={chipClassName}>
+                        {chipContent}
+                      </span>
+                    );
+                  })}
                 </div>
               )}
 

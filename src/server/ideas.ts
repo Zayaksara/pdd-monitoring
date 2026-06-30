@@ -3,6 +3,11 @@ import type { DriveCategory } from "@prisma/client";
 
 type LinkInput = { url: string; label?: string; category?: DriveCategory | null };
 
+function isSafeUrl(u: string): boolean {
+  try { const p = new URL(u); return p.protocol === "http:" || p.protocol === "https:"; }
+  catch { return false; }
+}
+
 const include = {
   links: true,
   createdBy: { select: { id: true, name: true } },
@@ -15,7 +20,7 @@ export function listIdeas() {
 export function createIdea(input: { title: string; notes?: string; createdById: string; links: LinkInput[] }) {
   return prisma.idea.create({ data: {
     title: input.title, notes: input.notes ?? "", createdById: input.createdById,
-    links: { create: input.links.map(l => ({ url: l.url, label: l.label ?? "", category: l.category ?? null })) },
+    links: { create: input.links.filter(l => isSafeUrl(l.url)).map(l => ({ url: l.url, label: l.label ?? "", category: l.category ?? null })) },
   }, include });
 }
 export async function updateIdea(id: string, input: { title?: string; notes?: string; links?: LinkInput[] }) {
@@ -24,7 +29,7 @@ export async function updateIdea(id: string, input: { title?: string; notes?: st
   }
   return prisma.idea.update({ where: { id }, data: {
     title: input.title, notes: input.notes,
-    ...(input.links ? { links: { create: input.links.map(l => ({ url: l.url, label: l.label ?? "", category: l.category ?? null })) } } : {}),
+    ...(input.links ? { links: { create: input.links.filter(l => isSafeUrl(l.url)).map(l => ({ url: l.url, label: l.label ?? "", category: l.category ?? null })) } } : {}),
   }, include });
 }
 export async function deleteIdea(id: string) { await prisma.idea.delete({ where: { id } }); }
