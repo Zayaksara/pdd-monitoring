@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+  // previewFeatures = ["driverAdapters"] — removed; driver adapters are GA in Prisma 6.15.0+
+}
+
+datasource db {
+  provider = "postgresql"
+  // url is no longer in schema.prisma in Prisma 7 — connection URL lives in prisma.config.ts
+}
+
+enum Role {
+  admin
+  user
+}
+
+enum TaskStatus {
+  PLANNING
+  IN_PROGRESS
+  REVIEW
+  DONE
+}
+
+enum DriveCategory {
+  DOKUMENTASI_RAW
+  RESULT_EDITING
+  ASSET_DESIGN
+  DOKUMENTASI_AKHIR
+}
+
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  name         String
+  passwordHash String
+  role         Role     @default(user)
+  createdAt    DateTime @default(now())
+  tasks        Task[]   @relation("assignee")
+  createdTasks Task[]   @relation("creator")
+  ideas        Idea[]
+}
+
+model Task {
+  id          String     @id @default(cuid())
+  title       String
+  description String     @default("")
+  status      TaskStatus @default(PLANNING)
+  deadline    DateTime?
+  assignee    User?      @relation("assignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  assigneeId  String?
+  createdBy   User       @relation("creator", fields: [createdById], references: [id])
+  createdById String
+  ideas       TaskIdea[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Idea {
+  id          String     @id @default(cuid())
+  title       String
+  notes       String     @default("")
+  createdBy   User       @relation(fields: [createdById], references: [id])
+  createdById String
+  links       IdeaLink[]
+  tasks       TaskIdea[]
+  createdAt   DateTime   @default(now())
+}
+
+model IdeaLink {
+  id       String         @id @default(cuid())
+  idea     Idea           @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  ideaId   String
+  url      String
+  label    String         @default("")
+  category DriveCategory?
+}
+
+model TaskIdea {
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId String
+  idea   Idea   @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  ideaId String
+
+  @@id([taskId, ideaId])
+}
