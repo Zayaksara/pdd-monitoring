@@ -5,10 +5,10 @@ import { CalendarDays, Lightbulb, User } from "lucide-react";
 import type { TaskWithRelations } from "@/server/tasks";
 
 const STATUS_BAR: Record<string, string> = {
-  PLANNING: "#64748B",
-  IN_PROGRESS: "#0D9488",
-  REVIEW: "#F59E0B",
-  DONE: "#22C55E",
+  PLANNING: "var(--status-planning)",
+  IN_PROGRESS: "var(--status-in-progress)",
+  REVIEW: "var(--status-review)",
+  DONE: "var(--status-done)",
 };
 
 interface TaskCardProps {
@@ -30,7 +30,7 @@ export default function TaskCard({ task, index }: TaskCardProps) {
     new Date(task.deadline) < new Date();
 
   const ideaCount = task.ideas.length;
-  const barColor = STATUS_BAR[task.status] ?? "#64748B";
+  const barColor = STATUS_BAR[task.status] ?? "var(--status-planning)";
 
   return (
     <Draggable draggableId={task.id} index={index}>
@@ -40,7 +40,7 @@ export default function TaskCard({ task, index }: TaskCardProps) {
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           className={`bg-[--surface] rounded-2xl shadow-sm p-4 flex flex-col gap-2 border border-[--border] cursor-grab active:cursor-grabbing focus:outline-none focus:ring-2 focus:ring-[--primary] ${
-            snapshot.isDragging ? "opacity-80 shadow-md" : ""
+            snapshot.isDragging ? "opacity-80 ring-2 ring-[--primary]" : ""
           }`}
           style={{
             borderLeft: `3px solid ${barColor}`,

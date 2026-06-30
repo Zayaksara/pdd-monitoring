@@ -5,10 +5,10 @@ import type { TaskWithRelations } from "@/server/tasks";
 import TaskCard from "./TaskCard";
 
 const STATUS_COLOR: Record<string, string> = {
-  PLANNING: "#64748B",
-  IN_PROGRESS: "#0D9488",
-  REVIEW: "#F59E0B",
-  DONE: "#22C55E",
+  PLANNING: "var(--status-planning)",
+  IN_PROGRESS: "var(--status-in-progress)",
+  REVIEW: "var(--status-review)",
+  DONE: "var(--status-done)",
 };
 
 interface ColumnProps {
@@ -18,7 +18,7 @@ interface ColumnProps {
 }
 
 export default function Column({ columnKey, label, tasks }: ColumnProps) {
-  const dotColor = STATUS_COLOR[columnKey] ?? "#64748B";
+  const dotColor = STATUS_COLOR[columnKey] ?? "var(--status-planning)";
 
   return (
     <div className="flex flex-col min-w-[80%] lg:min-w-0 snap-start rounded-2xl overflow-hidden border border-[--border]">
@@ -43,7 +43,7 @@ export default function Column({ columnKey, label, tasks }: ColumnProps) {
             ref={provided.innerRef}
             {...provided.droppableProps}
             className={`flex flex-col gap-3 p-3 flex-1 min-h-[120px] transition-colors ${
-              snapshot.isDraggingOver ? "bg-[--muted]/60" : "bg-[--bg]"
+              snapshot.isDraggingOver ? "bg-[color-mix(in_srgb,var(--muted)_60%,transparent)]" : "bg-[--bg]"
             }`}
           >
             {tasks.length === 0 && !snapshot.isDraggingOver && (
