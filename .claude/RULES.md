@@ -1,0 +1,2 @@
+- dont using any emoticons, use ICON
+- avoid AI SLOP
