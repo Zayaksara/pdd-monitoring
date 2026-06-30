@@ -62,7 +62,7 @@ export default async function AppLayout({
             {/* User info + logout */}
             <div className="flex items-center gap-2 shrink-0">
               <div className="flex items-center gap-2 min-w-0">
-                <span className="text-sm font-medium text-[--fg] truncate max-w-[120px] hidden xs:block">
+                <span className="text-sm font-medium text-[--fg] truncate max-w-[120px] hidden sm:block">
                   {user.name}
                 </span>
                 <span
