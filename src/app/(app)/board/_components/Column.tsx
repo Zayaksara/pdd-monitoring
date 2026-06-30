@@ -15,9 +15,17 @@ interface ColumnProps {
   columnKey: string;
   label: string;
   tasks: TaskWithRelations[];
+  isAdmin: boolean;
+  onEdit: (task: TaskWithRelations) => void;
 }
 
-export default function Column({ columnKey, label, tasks }: ColumnProps) {
+export default function Column({
+  columnKey,
+  label,
+  tasks,
+  isAdmin,
+  onEdit,
+}: ColumnProps) {
   const dotColor = STATUS_COLOR[columnKey] ?? "var(--status-planning)";
 
   return (
@@ -52,7 +60,13 @@ export default function Column({ columnKey, label, tasks }: ColumnProps) {
               </p>
             )}
             {tasks.map((task, i) => (
-              <TaskCard key={task.id} task={task} index={i} />
+              <TaskCard
+                key={task.id}
+                task={task}
+                index={i}
+                isAdmin={isAdmin}
+                onEdit={onEdit}
+              />
             ))}
             {provided.placeholder}
           </div>

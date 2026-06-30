@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
-import { X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import type { TaskWithRelations } from "@/server/tasks";
+import type { UserListItem } from "@/server/users";
 import Column from "./Column";
+import TaskDialog from "./TaskDialog";
 
 interface CurrentUser {
   id: string;
@@ -16,7 +18,25 @@ interface CurrentUser {
 interface BoardProps {
   initialTasks: TaskWithRelations[];
   currentUser: CurrentUser;
+  users: UserListItem[];
 }
+
+interface SavedTask {
+  id: string;
+  title: string;
+  description: string;
+  status: string;
+  assigneeId: string | null;
+  deadline: string | null;
+  createdById: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+type DialogState =
+  | { mode: "create" }
+  | { mode: "edit"; task: TaskWithRelations }
+  | null;
 
 const COLUMNS = [
   { key: "PLANNING", label: "Planning" },
@@ -27,12 +47,62 @@ const COLUMNS = [
 
 type TaskStatus = (typeof COLUMNS)[number]["key"];
 
-export default function Board({ initialTasks }: BoardProps) {
+export default function Board({ initialTasks, currentUser, users }: BoardProps) {
   const [tasks, setTasks] = useState<TaskWithRelations[]>(initialTasks);
   const [error, setError] = useState<string | null>(null);
+  const [dialog, setDialog] = useState<DialogState>(null);
+
+  const isAdmin = currentUser.role === "admin";
 
   function getTasksByStatus(status: TaskStatus) {
     return tasks.filter((t) => t.status === status);
+  }
+
+  function deriveAssignee(assigneeId: string | null): TaskWithRelations["assignee"] {
+    if (!assigneeId) return null;
+    const u = users.find((x) => x.id === assigneeId);
+    if (!u) return null;
+    return { id: u.id, name: u.name, username: u.username };
+  }
+
+  function handleSaved({
+    task: saved,
+    assigneeId,
+  }: {
+    task: SavedTask;
+    assigneeId: string | null;
+  }) {
+    const assignee = deriveAssignee(assigneeId);
+    setTasks((prev) => {
+      const existing = prev.find((t) => t.id === saved.id);
+      if (existing) {
+        // EDIT: merge returned fields, re-derive assignee, preserve ideas.
+        return prev.map((t) =>
+          t.id === saved.id
+            ? ({
+                ...t,
+                ...saved,
+                deadline: saved.deadline ? new Date(saved.deadline) : null,
+                createdAt: new Date(saved.createdAt),
+                updatedAt: new Date(saved.updatedAt),
+                assignee,
+                ideas: t.ideas,
+              } as unknown as TaskWithRelations)
+            : t
+        );
+      }
+      // CREATE: append a new card built from the API response.
+      const newTask = {
+        ...saved,
+        deadline: saved.deadline ? new Date(saved.deadline) : null,
+        createdAt: new Date(saved.createdAt),
+        updatedAt: new Date(saved.updatedAt),
+        assignee,
+        ideas: [],
+      } as unknown as TaskWithRelations;
+      return [...prev, newTask];
+    });
+    setDialog(null);
   }
 
   async function handleDragEnd(result: DropResult) {
@@ -83,6 +153,16 @@ export default function Board({ initialTasks }: BoardProps) {
         <h1 className="text-xl font-heading font-semibold text-[--fg]">
           Papan Tugas
         </h1>
+        {isAdmin && (
+          <button
+            type="button"
+            onClick={() => setDialog({ mode: "create" })}
+            className="flex min-h-[40px] items-center gap-2 rounded-lg bg-[--accent] px-4 text-sm font-semibold text-[--on-accent] focus:outline-none focus:ring-2 focus:ring-[--primary]"
+          >
+            <Plus size={16} />
+            Tugas Baru
+          </button>
+        )}
       </div>
 
       {/* Error banner */}
@@ -108,10 +188,22 @@ export default function Board({ initialTasks }: BoardProps) {
               columnKey={key}
               label={label}
               tasks={getTasksByStatus(key)}
+              isAdmin={isAdmin}
+              onEdit={(task) => setDialog({ mode: "edit", task })}
             />
           ))}
         </div>
       </DragDropContext>
+
+      {dialog && (
+        <TaskDialog
+          mode={dialog.mode}
+          task={dialog.mode === "edit" ? dialog.task : undefined}
+          users={users}
+          onClose={() => setDialog(null)}
+          onSaved={handleSaved}
+        />
+      )}
     </div>
   );
 }

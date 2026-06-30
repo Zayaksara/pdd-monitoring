@@ -1,7 +1,7 @@
 "use client";
 
 import { Draggable } from "@hello-pangea/dnd";
-import { CalendarDays, Lightbulb, User } from "lucide-react";
+import { CalendarDays, Lightbulb, Pencil, User } from "lucide-react";
 import type { TaskWithRelations } from "@/server/tasks";
 
 const STATUS_BAR: Record<string, string> = {
@@ -14,6 +14,8 @@ const STATUS_BAR: Record<string, string> = {
 interface TaskCardProps {
   task: TaskWithRelations;
   index: number;
+  isAdmin: boolean;
+  onEdit: (task: TaskWithRelations) => void;
 }
 
 function formatDeadline(date: Date): string {
@@ -23,7 +25,12 @@ function formatDeadline(date: Date): string {
   });
 }
 
-export default function TaskCard({ task, index }: TaskCardProps) {
+export default function TaskCard({
+  task,
+  index,
+  isAdmin,
+  onEdit,
+}: TaskCardProps) {
   const overdue =
     task.deadline &&
     task.status !== "DONE" &&
@@ -48,9 +55,22 @@ export default function TaskCard({ task, index }: TaskCardProps) {
           }}
         >
           {/* Title */}
-          <p className="text-sm font-semibold text-[--fg] leading-snug line-clamp-2">
-            {task.title}
-          </p>
+          <div className="flex items-start gap-2">
+            <p className="flex-1 text-sm font-semibold text-[--fg] leading-snug line-clamp-2">
+              {task.title}
+            </p>
+            {isAdmin && (
+              <button
+                type="button"
+                onClick={() => onEdit(task)}
+                onMouseDown={(e) => e.stopPropagation()}
+                className="shrink-0 rounded-lg p-1 text-[--muted-fg] hover:text-[--fg] focus:outline-none focus:ring-2 focus:ring-[--primary]"
+                aria-label={`Ubah tugas ${task.title}`}
+              >
+                <Pencil size={14} />
+              </button>
+            )}
+          </div>
 
           {/* Assignee */}
           {task.assignee && (
