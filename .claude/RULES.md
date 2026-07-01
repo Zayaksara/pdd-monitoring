@@ -1,2 +1,4 @@
 - dont using any emoticons, use ICON
 - avoid AI SLOP
+- avoid colaborator with CLAUDE
+- use github zayaksara to push it

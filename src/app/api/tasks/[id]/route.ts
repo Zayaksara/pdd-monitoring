@@ -14,6 +14,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (!task) return NextResponse.json({ error: "not found" }, { status: 404 });
 
     if (typeof body.status === "string") {
+      const allowedStatuses: TaskStatus[] = ["PLANNING", "IN_PROGRESS", "REVIEW", "DONE"];
+      if (!allowedStatuses.includes(body.status as TaskStatus)) {
+        return NextResponse.json({ error: "invalid status" }, { status: 400 });
+      }
       const allowed = canChangeStatus({
         role: user.role as Role,
         isAssignee: task.assigneeId === user.id,
@@ -26,7 +30,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     await requireAdmin();
     const updated = await updateTaskFields(id, {
       title: body.title, description: body.description,
-      assigneeId: body.assigneeId ?? undefined,
+      assigneeId: body.assigneeId === undefined ? undefined : (body.assigneeId || null),
       deadline: body.deadline === undefined ? undefined : body.deadline ? new Date(body.deadline) : null,
     });
     return NextResponse.json(updated);

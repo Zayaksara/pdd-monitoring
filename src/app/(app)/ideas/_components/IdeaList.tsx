@@ -21,10 +21,10 @@ type DialogState =
   | null;
 
 const CATEGORY_STYLES: Record<DriveCategory, string> = {
-  DOKUMENTASI_RAW: "bg-slate-100 text-slate-700",
-  RESULT_EDITING: "bg-teal-100 text-teal-800",
-  ASSET_DESIGN: "bg-violet-100 text-violet-800",
-  DOKUMENTASI_AKHIR: "bg-amber-100 text-amber-800",
+  DOKUMENTASI_RAW: "bg-[--category-raw-bg] text-[--category-raw-fg]",
+  RESULT_EDITING: "bg-[--category-editing-bg] text-[--category-editing-fg]",
+  ASSET_DESIGN: "bg-[--category-design-bg] text-[--category-design-fg]",
+  DOKUMENTASI_AKHIR: "bg-[--category-final-bg] text-[--category-final-fg]",
 };
 
 const CATEGORY_LABELS: Record<DriveCategory, string> = Object.fromEntries(

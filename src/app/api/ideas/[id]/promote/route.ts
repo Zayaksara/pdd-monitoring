@@ -11,8 +11,15 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
       return new NextResponse("Forbidden", { status: 403 });
     }
     const { id } = await params;
-    const task = await promoteIdeaToTask(id, admin.id);
-    return NextResponse.json(task, { status: 201 });
+    try {
+      const task = await promoteIdeaToTask(id, admin.id);
+      return NextResponse.json(task, { status: 201 });
+    } catch (e) {
+      if (e instanceof Error && e.message === "idea not found") {
+        return NextResponse.json({ error: "not found" }, { status: 404 });
+      }
+      throw e;
+    }
   } catch (e) {
     if (e instanceof Response) return e;
     throw e;

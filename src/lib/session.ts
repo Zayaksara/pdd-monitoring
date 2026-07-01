@@ -2,7 +2,13 @@ import { SignJWT, jwtVerify } from "jose";
 
 export const SESSION_COOKIE = "pdd_session";
 type Payload = { sub: string; role: "admin" | "user" };
-const secret = () => new TextEncoder().encode(process.env.SESSION_SECRET);
+const secret = () => {
+  const value = process.env.SESSION_SECRET;
+  if (!value) {
+    throw new Error("SESSION_SECRET is not set — refusing to sign/verify session tokens with an empty key.");
+  }
+  return new TextEncoder().encode(value);
+};
 
 export async function createSessionToken(p: Payload): Promise<string> {
   return new SignJWT({ role: p.role })
