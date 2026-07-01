@@ -1,10 +1,9 @@
-import { PrismaNeon } from "@prisma/adapter-neon";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
 
-// PrismaNeon takes a neon.PoolConfig (which includes connectionString).
-// driver adapters are GA in Prisma 7 — no previewFeatures needed.
-// neonConfig.webSocketConstructor is only required for Node.js < 21;
-// omitted here; add `ws` package + neonConfig setup if deploying on Node 18/20.
+// Driver adapters are GA in Prisma 7. PrismaPg (node-postgres) connects to any
+// standard Postgres over TCP, including Prisma Postgres (db.prisma.io) and
+// works on Vercel serverless functions.
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
@@ -13,7 +12,7 @@ function createClient(): PrismaClient {
   if (!connectionString) {
     throw new Error("DATABASE_URL is not set — cannot create the Prisma client.");
   }
-  const adapter = new PrismaNeon({ connectionString });
+  const adapter = new PrismaPg({ connectionString });
   return new PrismaClient({ adapter });
 }
 
